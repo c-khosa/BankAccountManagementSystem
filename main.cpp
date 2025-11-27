@@ -1,199 +1,220 @@
 #include <iostream>
-#include <limits>
-#include <vector>
-#include <iomanip>
 #include <string>
+#include <limits>
+#include <iomanip>
+#include<vector>
 using namespace std;
-class Account
+class BankAccount
 {
+    
 private:
     string accountNumber;
-    string accountType;
+    string accountHolderName;
     double balance;
 
 public:
-    Account(string number, string type, double init) : accountNumber(number), accountType(type), balance(init) {}
-
-    string getacc() const
+static int nextAccountNumber;
+    BankAccount( string accHolder, double initialBalance)
     {
+        accountNumber = to_string(nextAccountNumber++);
+        accountHolderName = accHolder;
+        balance = initialBalance;
+    }
+
+    void deposit(double amount)
+    {
+        balance += amount;
+        cout << "Deposited: " << amount << endl;
+    }
+
+    void withdraw(double amount)
+    {
+        if (amount <= balance)
+        {
+            balance -= amount;
+            cout << "Withdrew: " << amount << endl;
+        }
+        else
+        {
+            cout << "Insufficient funds!" << endl;
+        }
+    }
+
+    void  displayAccountInfo() const
+    {
+        cout << "Account Number: " << accountNumber << endl;
+        cout << "Account Holder: " << accountHolderName << endl;
+        cout << fixed << setprecision(2);
+        cout << "Balance: " << balance << endl;
+    }
+    string getaccountNumber(){
         return accountNumber;
     }
-    string gettype() const
-    {
-        return accountType;
-    }
-    double getbalance() const
-    {
-        return balance;
-    }
-
-    void display()
-    {
-        cout << "Account #: " << accountNumber
-             << " | Type: " << accountType
-             << " | Balance: $" << fixed << setprecision(2) << balance << "\n";
-    }
 };
-class user
+BankAccount* findAccount(vector<BankAccount>& accounts, const string& accNum)
 {
-private:
-    string username;
-    int pin;
-    vector<Account> accounts;
-
-public:
-    user(  const string& uname, const int &pass) : username(uname), pin(pass) {}
-    string getname() const
+    for (auto& acc : accounts)
     {
-        return username;
-    }
-    bool check(int epin)
-    {
-        return pin == epin;
-    }
-    void addacc(Account &acoount)
-
-    {
-        accounts.push_back(acoount);
-    }
-    void displayAccounts() const
-    {
-        if (accounts.empty())
+        if (acc.getaccountNumber() == accNum)
         {
-            cout << "No accounts found.\n";
-            return;
-        }
-
-        cout << "\n----- Your Accounts -----\n";
-        for ( auto a : accounts)
-        {
-            a.display();
-        }
-        cout << "--------------------------\n";
-    }
-};
-vector<user> users;
-int nextAccountNumber = 3000;
-
-void clearInput() {
-    cin.clear();
-    cin.ignore(numeric_limits<streamsize>::max(), '\n');
-}
-
-void creatnewuser(){
-    string uname;
-    int pin;
-    cout << "\n===== Create New Account =====\n";
-    cout << "Enter new username: ";
-    cin >> uname;
-    // Check duplicate
-    for (auto& u : users) {
-        if (u.getname() == uname) {
-            cout << "Username already exists. Try again.\n";
-            return;
+            return &acc;   
         }
     }
-
-    cout << "Enter 4-digit PIN: ";
-    cin >> pin;
-
-    user newUser(uname, pin);
-
-    // Auto create default Checking account
-    Account acc(to_string(nextAccountNumber++), "Checking", 0.00);
-    newUser.addacc(acc);
-
-    users.push_back(newUser);
-
-    cout << "\nAccount created successfully. You can now log in.\n";
-}
-    
-
-user* login() {
-    string uname;
-    int  pin;
-
-    cout << "\n===== Login =====\n";
-    cout << "Username: ";
-    cin >> uname;
-
-    cout << "PIN: ";
-    cin >> pin;
-
-    for (auto& u : users) {
-        if (u.getname() == uname && u.check(pin)) {
-            cout << "Login successful!\n";
-            return &u;
-        }
-    }
-
-    cout << "Invalid login.\n";
-    return nullptr;
-}
-void userHome(user* user) {
-    int choice;
-
-    do {
-        cout << "\n===== Dashboard =====\n";
-        cout << "1. View My Accounts\n";
-        cout << "2. Logout\n";
-        cout << "Enter option: ";
-        cin >> choice;
-
-        switch (choice) {
-        case 1:
-            user->displayAccounts();
-            break;
-        case 2:
-            cout << "Logging out...\n";
-            break;
-        default:
-            cout << "Invalid option!\n";
-        }
-
-    } while (choice != 2);
+    return nullptr;       
 }
 
-
+int BankAccount::nextAccountNumber = 1001; 
 
 int main()
-{int choice;
+{
 
-    do {
-        cout << "\n==============================\n";
-        cout << "      Welcome to MyBank       \n";
-        cout << "==============================\n";
-        cout << "1. Login\n";
-        cout << "2. Create New Account\n";
-        cout << "3. Exit\n";
-        cout << "Select option: ";
+    cout << "Welcome to the Bank Account Management System!" << endl;
+    cout << "Enter Account Details:" << endl;
+    vector<BankAccount> account;
+    int choice;
+    do
+    {
+        cout << "1. Create Account" << endl;
+        cout << "2. Deposit" << endl;
+        cout << "3. Withdraw" << endl;
+        cout << "4. Display One Account" << endl;
+        cout << "5. Display All Accounts" << endl;
+        cout << "6. Exit" << endl;
+        cout << "Choose an option: ";
         cin >> choice;
 
-        if (cin.fail()) {
-            clearInput();
-            cout << "Invalid input.\n";
-            continue;
+        if (choice == 1)
+        {
+            string  accHolder;
+            double initialBalance;
+           
+            cout << "Account Holder Name: ";
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+
+            getline(cin, accHolder);
+            cout << "Initial Balance: ";
+            while (!(cin >> initialBalance) || initialBalance < 0)
+            {
+                cout << "Enter a valid non-negative amount: ";
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            }
+            account.push_back(BankAccount(accHolder, initialBalance));
+            cout << "Account created successfully!" << endl;
+            cout<<"Account number"<<account.back().getaccountNumber()<<endl<<endl;
+        }
+        else if (choice == 2)
+        {
+            if (account.empty())
+            {
+                cout << "No accounts available. Create an account first." << endl;
+                continue;
+            }
+
+            string accNum;
+            cout << "Enter Account Number for deposit: ";
+            cin >> accNum;
+            BankAccount* acc = findAccount(account, accNum);
+            if (acc == nullptr)
+            {
+                cout << "Account not found!" << endl;
+            }
+            else
+            {
+                double amount;
+                cout << "Enter amount to deposit: ";
+                while (!(cin >> amount) || amount <= 0)
+                {
+                    cout << "Enter a valid positive amount: ";
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                }
+                acc->deposit(amount);
+            }
+        }
+        else if (choice == 3)
+        {
+            if (account.empty())
+            {
+                cout << "No accounts available. Create an account first." << endl;
+                continue;
+            }
+
+            string accNum;
+            cout << "Enter Account Number for withdrawal: ";
+            cin >> accNum;
+
+            BankAccount* acc = findAccount(account, accNum);
+            if (acc == nullptr)
+            {
+                cout << "Account not found!" << endl;
+            }
+            else
+            {
+                double amount;
+                cout << "Enter amount to withdraw: ";
+                while (!(cin >> amount) || amount <= 0)
+                {
+                    cout << "Enter a valid positive amount: ";
+                    cin.clear();
+                    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                }
+                acc->withdraw(amount);
+            }
+        }
+        else if (choice == 4)
+        {
+            if (account.empty())
+            {
+                cout << "No accounts available." << endl;
+                continue;
+            }
+
+            string accNum;
+            cout << "Enter Account Number to display: ";
+            cin >> accNum;
+
+            BankAccount* acc = findAccount(account, accNum);
+            if (acc == nullptr)
+            {
+                cout << "Account not found!" << endl;
+            }
+            else
+            {
+                acc->displayAccountInfo();
+            }
+        }
+                else if (choice == 5)
+        {
+            if (account.empty())
+            {
+                cout << "No accounts available." << endl;
+            }
+            else
+            {
+                cout << "\nAll Accounts:" << endl;
+                for (const auto& acc : account)
+                {
+                    acc.displayAccountInfo();
+                }
+            }
         }
 
-        switch (choice) {
-        case 1: {
-            user* user = login();
-            if (user != nullptr)
-                userHome(user);
-            break;
+
+
+        else if (choice == 6)
+        {
+            cout << "Exiting the system. Goodbye!" << endl;
         }
-        case 2:
-            creatnewuser();
-            break;
-        case 3:
-            cout << "Goodbye!\n";
-            break;
-        default:
-            cout << "Invalid choice.\n";
+        else
+        {
+            cout << "Invalid choice! Please try again." << endl;
         }
 
-    } while (choice != 3);
+    } while (choice != 6);
 
-   
     return 0;
 }
+   
+
+    
